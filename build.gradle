@@ -1,0 +1,31 @@
+version = '0.0.1-SNAPSHOT'
+
+ext {
+    javaVersion = '1.8'
+    beamVersion = '2.2.0'
+    confluentVersion = '4.0.0' // for Avro and schema registry code
+    hamcrestVersion = '1.3'
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
+
+sourceCompatibility = javaVersion
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'org.apache.beam', name: 'beam-sdks-java-core', version: beamVersion
+    compile group: 'org.apache.beam', name: 'beam-runners-direct-java', version: beamVersion
+    compile group: 'org.apache.beam', name: 'beam-runners-google-cloud-dataflow-java', version: beamVersion
+    compile group: 'org.apache.beam', name: 'beam-sdks-java-io-google-cloud-platform', version: beamVersion
+
+    testCompile group: 'org.hamcrest', name: 'hamcrest-core', version: hamcrestVersion
+    testCompile group: 'org.hamcrest', name: 'hamcrest-library', version: hamcrestVersion
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.3.1'
+}
