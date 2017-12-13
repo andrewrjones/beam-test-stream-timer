@@ -32,9 +32,12 @@ public class TimerTest {
                 .create(KvCoder.of(StringUtf8Coder.of(), VarIntCoder.of()))
                 // Test will hang if we add the elements separately, like this
                 .addElements(KV.of("hello", 100))
+                //.advanceProcessingTime(Duration.standardDays(1))
                 .addElements(KV.of("hello", 200))
                 // This works fine
 //                .addElements(KV.of("hello", 100), KV.of("hello", 200))
+                // This doesn't seem to help, no matter what I set it to
+                .advanceProcessingTime(Duration.standardDays(1))
                 .advanceWatermarkToInfinity();
 
         PCollection<Integer> output = p.apply(createEvents)
