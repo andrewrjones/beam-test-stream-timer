@@ -7,6 +7,7 @@ import org.apache.beam.sdk.state.*;
 import org.apache.beam.sdk.testing.*;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
+import org.apache.beam.sdk.transforms.windowing.BoundedWindow;
 import org.apache.beam.sdk.transforms.windowing.GlobalWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.values.KV;
@@ -48,21 +49,35 @@ public class TimerTest {
 
     static class WithTimers extends DoFn<KV<String, Integer>, Integer> {
         private final String timerId = "myTimer";
+        private final String expiryTimerId = "expiry";
 
         @TimerId(timerId)
         private final TimerSpec spec = TimerSpecs.timer(TimeDomain.EVENT_TIME);
 
+        @TimerId(expiryTimerId)
+        private final TimerSpec expirySpec = TimerSpecs.timer(TimeDomain.EVENT_TIME);
+
         @ProcessElement
         public void processElement(ProcessContext context,
-                                   @TimerId(timerId) Timer timer) {
+                                   BoundedWindow window,
+                                   @TimerId(timerId) Timer timer,
+                                   @TimerId(expiryTimerId) Timer expiryTimer) {
             System.out.println(context.element());
             timer.set(Instant.now().plus(Duration.standardSeconds(1)));
+            expiryTimer.set(window.maxTimestamp());
+
             context.output(3);
         }
 
         @OnTimer(timerId)
         public void onTimer(OnTimerContext context) {
             context.output(42);
+        }
+
+        @OnTimer(expiryTimerId)
+        public void onExpiry(OnTimerContext context) {
+            // Use the expiry to flush anything left in state
+            context.output(52);
         }
     }
 }
